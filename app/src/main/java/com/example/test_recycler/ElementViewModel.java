@@ -1,26 +1,27 @@
 package com.example.test_recycler;
 
-import java.util.Random;
-import java.util.concurrent.ExecutorService;
-
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-
-import org.w3c.dom.ls.LSOutput;
-
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 
-public class ElementViewModel extends ViewModel  {
-    ElementActionAsync elementActionAsync;
-    //MutableLiveData<Integer> data;
+public class ElementViewModel extends ViewModel implements Runnable {
+
+    private static final long DELAY_MILLIS = 5_000;
+    private static final int DEFAULT_SIZE = 15;
     private MutableLiveData<List<Element>> data;
-    //    private List<Element> data = new MutableLiveData<>();
     private List<Element> list = new ArrayList<>();
+    private final Handler handler = new Handler(Looper.myLooper());
+    private final Random random = new Random();
+    private int lastId = 14;
+    private final LinkedList<Integer> removedIds = new LinkedList<>();
 
     public LiveData<List<Element>> getData() {
         if (data == null) {
@@ -30,45 +31,48 @@ public class ElementViewModel extends ViewModel  {
         return data;
     }
 
-//    public void setData(List<Element> listNew) {
-//        listViewModel = listNew;
-//    }
-
-
     public void loadData() {
-
-//        data.setValue(MainActivity.list);
-//        data.setValue(repository.getElement());
         data.setValue(setInitData());
     }
 
 
     @Override
     protected void onCleared() {
-        Log.e("ElementViewModel", "==========onCleared()==========");
-        super.onCleared();
+        handler.removeCallbacks(this);
     }
 
     public List<Element> setInitData() {
-
-        int id = 16;
-        int minNumber = 1;
-        while (list.size() < 15) {
-            list.add(new Element(minNumber));
-            minNumber++;
-
+        for (int i = 0; i < DEFAULT_SIZE; i++) {
+            list.add(new Element(i));
         }
-
-
-        elementActionAsync = new ElementActionAsync();
-
-        System.out.println("Начало ");
-        elementActionAsync.start();
+        handler.postDelayed(this, DELAY_MILLIS);
 
         return list;
-
     }
 
 
+    public void removeElementAt(int index) {
+        list = new ArrayList<>(list);
+        Element removed = list.remove(index);
+        removedIds.add(removed.number);
+        data.setValue(list);
+    }
 
+    @Override
+    public void run() {
+        int nextInt = random.nextInt(list.size());
+        list = new ArrayList<>(list);
+
+        int elementId;
+        if (removedIds.isEmpty()) {
+            elementId = ++lastId;
+        } else {
+            elementId = removedIds.get(0);
+            removedIds.remove(0);
+        }
+
+        list.add(nextInt, new Element(elementId));
+        data.setValue(list);
+        handler.postDelayed(this, DELAY_MILLIS);
+    }
 }

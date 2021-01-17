@@ -1,61 +1,39 @@
 package com.example.test_recycler;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-class AdapterElement extends RecyclerView.Adapter<AdapterElement.ViewHolder> {
+class AdapterElement extends ListAdapter<Element, AdapterElement.ViewHolder> {
 
-    ElementViewModel model;
-    // private final LayoutInflater inflater;
-    private final List<Element> list;
-//
-//    public AdapterElement(Context context, List<Element> list) {
-//        this.list = list;
-//        this.inflater = LayoutInflater.from(context);
-//
-//    }
+    private final ElementRemoveClickListener elementRemoveClickListener;
 
-    public AdapterElement(List<Element> list) {
-        this.list = list;
-
-
+    public AdapterElement(@NonNull DiffUtil.ItemCallback<Element> diffCallback, ElementRemoveClickListener elementRemoveClickListener) {
+        super(diffCallback);
+        this.elementRemoveClickListener = elementRemoveClickListener;
     }
 
+    @NonNull
     @Override
     public AdapterElement.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_item, parent, false);
-        return new ViewHolder(view);
+        ViewHolder holder = new ViewHolder(view);
+        holder.btnDelete.setOnClickListener(v -> elementRemoveClickListener.onRemoveClicked(holder.getAdapterPosition()));
+        return holder;
     }
 
     @Override
     public void onBindViewHolder(AdapterElement.ViewHolder holder, int position) {
-        Element element = list.get(position);
-        TextView textNumber = holder.txtNumberElement.findViewById(R.id.txtNumberElement);
-        textNumber.setText(String.valueOf(element.getNumber()));
-        Button btnDelete = holder.btnDelete.findViewById(R.id.btnDelete);
-        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //deleteItemByPosition(position);//i is your adapter position
-                list.remove(position);
-                notifyDataSetChanged();
-
-            }
-        });
-    }
-
-    @Override
-    public int getItemCount() {
-        return list.size();
+        Element element = getItem(position);
+        holder.txtNumberElement.setText(String.valueOf(element.getNumber()));
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -70,15 +48,4 @@ class AdapterElement extends RecyclerView.Adapter<AdapterElement.ViewHolder> {
         }
     }
 
-
-    public List<Element> deleteItemByPosition(int position) {
-        list.remove(position);
-        notifyDataSetChanged();
-        //  model.setData(list);
-        return list;
-    }
-
-    public List<Element> getList() {
-        return list;
-    }
 }
