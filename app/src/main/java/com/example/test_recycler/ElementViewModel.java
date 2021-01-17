@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ElementViewModel extends ViewModel implements Runnable {
+public class ElementViewModel extends ViewModel  {
     ElementActionAsync elementActionAsync;
     //MutableLiveData<Integer> data;
     private MutableLiveData<List<Element>> data;
@@ -65,16 +65,10 @@ public class ElementViewModel extends ViewModel implements Runnable {
         System.out.println("Начало ");
         elementActionAsync.start();
 
-
         return list;
 
-        //return list;
     }
 
 
-    @Override
-    public void run() {
 
-
-    }
 }
